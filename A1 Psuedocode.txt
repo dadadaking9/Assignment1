@@ -1,0 +1,174 @@
+input_terminal(): # Takes in inputs and tells the program what to do with them
+	user_input = input()
+	while user_input() not ‘Q’:
+		is_valid = cmd_checker(user_input)
+		if is_valid:
+			cmd_processor(user_input)
+		else:
+			error()
+			user_input = input()
+			
+cmd_checker(user_input): -> bool:
+	'''Checks whether the user-entered command is one that the program can process'''
+	Commands = [‘L ’, ‘C ’, ‘D ’, ‘R ’] # Q, rather than a command, is set up as a program quitter.
+	User_cmd = user_input[0:2]
+	Cmd_exists = User_cmd in Commands
+	valid_extension = True
+	
+	if len(user_input) < 1: # Empty Input
+		return False
+
+	if User_cmd = ‘L’:
+		L_valid_extensions = [‘ -r’, ‘ -f’]
+		L_additional_input = [‘ -s’, ‘ -e’] 
+		L_user_extensions = []
+		for character in user_input
+			if (character == '-') and (user_input[character.index - 1] == ' '): #if there's a ' -', recognize it as an attempted extension.
+				L_user_extensions.append(user_input[character.index - 1: character.index + 2]) 
+		for extension in L_user_extensions:
+			if not ((L_valid_extensions contains extension) or (L_additional_input contains extension)):
+				valid_extension = False
+			if L_additional_input contains extension:
+				try:
+					if len(user_input[(extension.index + 4):]) < 1: #both -s and -e require additional input. If none, invalid command. Try/except catches index out of bounds.
+					valid_extension = False
+				except:
+					valid_extension = False
+		return Cmd_exists and valid_extension
+	elif Cmd_exists: # C, D, and R all have built-in error checking so doing it here is unneccessary
+		return True
+	else:
+		return False
+
+def cmd_processor(command):
+	'''Processess the given command by delegating the request to the respective method'''
+	primary_command = command[0:2]
+	if primary_command == 'L':
+		if '-r' in command:
+			list_recurisve(command)
+		else:
+			list_iterative(command)
+	elif primary_command == 'C':
+		create_cmd(command)
+	elif primary_command == 'D':
+		delete_cmd(command)
+	elif primary_command == 'R':
+		read_cmd(command)
+		
+def list_iterative(command):
+	'''Runs the list command along with user-specifications iteratively'''
+	file_l = []
+	directory_l = []
+	path_input = ''
+
+	possible_extensions [' -f',' -s',' -e']
+	has_extension = False
+	the_extension = ''
+	
+	for extension in possible_extensions:
+		if extension in command:
+			the_extension = extension
+			has_extension = True
+	
+	if has_extension:
+		path_input = command[2:command.index(the_extension)]
+	else:
+		path_input = command[2:]
+
+	data_folder = pathlib.path(path_input)
+
+	for file_obj in data_folder.iterdir():
+		if file_obj.is_file():
+			file_l.append(file_obj)
+		elif file_obj.is_dir():
+			directory_l.append(file_obj)
+
+	for file in file_l:
+		if the_extension == '' or the_extension == ' -f':
+			print(file)
+		elif the_extension == ' -s':
+			if str(file.name) == command[command.index(' -s ' + 4):]:
+				print(file)
+		elif the_extension == ' -e':
+			if file.suffix == '.' + str(command[command.index(' -e ' + 4):]):
+				print(file)
+
+	for directory in directory_l:
+		if not the_extension == ' -f':
+			print(directory) 
+
+
+
+def list_recursive(command):
+	'''Runs the list command along with user-specifications recursively. Looks into directories in the specified path for more
+	files if they exist.'''
+	data_folder = pathlib.path(command[2:command.index(' -r')])
+	list_recursive_helper(data_folder)
+	
+			
+def list_recursive_helper(location): #Might need work
+	'''Helper method for list_recursive.'''
+	the_file = pathlib.path(location)
+	file_l = []
+	directory_l = []
+
+	for item in location.iterdir():
+		if the_file.is_file():
+			file_l.append(the_file)
+		elif the_file.is_dir()
+			directory_l.append(the_file)
+
+		for f in file_l():
+			print(f)
+		for directory in directory_l:
+			print(directory)
+			list_recursive_helper(directory)
+			
+
+def create_cmd(command):
+	'''Create a new user-named file in a user-specified directory'''
+	try:
+		name_index = command.index(' -n ')
+		file_name = command[name_index + 4:]
+		specified_dir = command[2:name_index]
+		item = pathlib.Path(specified_dir)
+		item.joinpath(file_name + '.dsu').touch(exist_ok = False)
+	except:
+		error()
+
+def delete_cmd(command):
+	'''Deletes a specified DSU file. Errors if file specified is
+	not a DSU file.'''
+	try:
+		del_item = pathlib.Path(command[2:])
+		if del_item.suffix == '.dsu':
+			del_item.unlink(missing_ok=True)
+			print (str(del_item) + ' DELETED')
+	except:
+		error()
+
+def read_cmd(command):
+	'''Attempts to read the user-specified file. If empty, prints "EMPTY". '''
+	try:
+		read_item = pathlib.Path(command[2:])
+		if read_item.suffix == '.dsu':
+			if read_item.stat().st_size == 0:
+				print('EMPTY')
+			else:
+				try:
+					read_item.open('r')
+					read_item.readlines()
+				except:
+					error()
+		else:
+			error()
+	except:
+		error()
+
+
+error():
+	'''Prints 'ERROR''''
+	print(‘ERROR’)
+	
+main():
+	input_terminal()
